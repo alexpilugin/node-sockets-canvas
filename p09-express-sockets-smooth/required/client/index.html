@@ -1,0 +1,134 @@
+<!doctype html>
+
+<head>
+	<title>Using Socket.io</title>
+	<link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+	<div id="container">
+		<h3>A simple real time multiplayer game on Sockets.io</h3>
+		<canvas id="ctx" width="500" height="500" style="border:1px solid #000;"></canvas>
+		<br />
+		<button onclick="addPlayer()">Add Extra Player</button>
+		<button onclick="removeLastPlayer()">Remove last Extra Player</button><br />
+		<br />
+		<div id="output"></div>
+	</diV>
+
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.2/socket.io.js"></script>
+	<!--Polyfill: https://gist.github.com/paulirish/1579671 -->
+	<script src="js/requestAnimationFrame.js"></script>
+	<script>
+		var output = document.getElementById("output");
+		var message = '';
+		var localPlayers = [];
+
+		var canvas = document.getElementById("ctx");
+		var ctx = canvas.getContext("2d");
+		ctx.font = '20px Arial';
+
+		var socket = io();
+
+		//new_positions
+		socket.on('responce_new_positions', function (data) {
+			localPlayers = data;
+			//console.log(localPlayers);
+		})
+
+		//a new text message from a server
+		socket.on('server_text_msg', function (msg) {
+			output.innerHTML = msg.toString();
+		})
+
+
+		const addPlayer = function () {
+			socket.emit('request_addPlayer');
+			console.log('request_addPlayer');
+		}
+
+		const removeLastPlayer = function () {
+			socket.emit('request_removeLastPlayer');
+			console.log('request_removeLastPlayer');
+		}
+
+
+		function update() {
+			socket.emit('request_update');
+		}
+
+		function draw() {
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
+			for (var i = 0; i < localPlayers.length; i++) {
+				var player = localPlayers[i];
+				ctx.fillStyle = player.color;
+				ctx.fillText(player.id, player.x, player.y);
+				//console.log(player);
+			}
+		}
+
+		// https://css-tricks.com/using-requestanimationframe/
+		function drawLoop() {
+			update();
+			draw();
+			requestAnimationFrame(drawLoop);
+		}
+		drawLoop();
+
+
+
+
+
+		/*
+		document.onkeydown = function (event) {
+			const state = true;
+			ctx.fillStyle = "#ff0000";
+
+			const keyCode = event.which || event.keyCode;
+
+			if (keyCode === 68 || keyCode === 39) //d 
+			{
+				socket.emit('keyPress', { inputId: 'right', state: state })
+				message = 'right';
+			}
+			else if (keyCode === 83 || keyCode === 40) //s 
+			{
+				socket.emit('keyPress', { inputId: 'down', state: state })
+				message = 'down';
+			}
+			else if (keyCode === 65 || keyCode === 37) //a
+			{
+				socket.emit('keyPress', { inputId: 'left', state: state })
+				message = 'left';
+			}
+			else if (keyCode === 87 || keyCode === 38) //w
+			{
+				socket.emit('keyPress', { inputId: 'up', state: state })
+				message = 'up';
+			} else {
+				message = 'pressed ' + String.fromCharCode(keyCode); //convert keyCode to a character
+			}
+			console.log(message);
+			output.innerHTML = message;
+			console.log(output.innerHTML);
+		}
+
+		document.onkeyup = function (event) {
+			const state = false;
+			ctx.fillStyle = "#000000";
+			const keyCode = event.which || event.keyCode;
+
+			if (keyCode === 68) //d
+				socket.emit('keyPress', { inputId: 'right', state: state })
+			else if (keyCode === 83) //s
+				socket.emit('keyPress', { inputId: 'down', state: state })
+			else if (keyCode === 65) //a
+				socket.emit('keyPress', { inputId: 'left', state: state })
+			else if (keyCode === 87) //w
+				socket.emit('keyPress', { inputId: 'up', state: state })
+			output.innerHTML = '';
+			console.log(output.innerHTML);
+		}
+		*/
+	</script>
+</body>

@@ -9,6 +9,9 @@ app.get('/', function (req, res) {
 	res.sendFile(__dirname + '/client/index.html');
 });
 
+// static resources for public access
+app.use(express.static(__dirname + '/client'));
+
 serv.listen(3000);
 
 console.log('Server started on localhost:3000; press Ctrl-C to terminate....');
